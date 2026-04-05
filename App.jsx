@@ -18,14 +18,28 @@ export default async function handler(request) {
 
   var apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return Response.json({ error: "ANTHROPIC_API_KEY not set in Vercel env vars" }, { status: 500 });
+    return Response.json({ error: "NO_API_KEY" }, { status: 500 });
   }
 
   try {
-    var body = await request.json();
+    var rawText = await request.text();
+    var body;
+    try {
+      body = JSON.parse(rawText);
+    } catch (e) {
+      return Response.json({
+        error: "JSON_PARSE_FAILED",
+        rawLength: rawText.length,
+        rawPreview: rawText.substring(0, 200)
+      }, { status: 400 });
+    }
 
     if (!body.prompt) {
-      return Response.json({ error: "prompt is required" }, { status: 400 });
+      return Response.json({
+        error: "NO_PROMPT_FIELD",
+        receivedKeys: Object.keys(body),
+        bodyPreview: JSON.stringify(body).substring(0, 300)
+      }, { status: 400 });
     }
 
     var apiResponse = await fetch("https://api.anthropic.com/v1/messages", {
@@ -46,10 +60,11 @@ export default async function handler(request) {
     var data = await apiResponse.json();
 
     if (!apiResponse.ok) {
-      return Response.json(
-        { error: (data.error && data.error.message) || "API error" },
-        { status: apiResponse.status }
-      );
+      return Response.json({
+        error: "ANTHROPIC_ERROR",
+        status: apiResponse.status,
+        message: data.error ? data.error.message : JSON.stringify(data).substring(0, 300)
+      }, { status: apiResponse.status });
     }
 
     var text = "";
@@ -63,6 +78,6 @@ export default async function handler(request) {
       output_tokens: (data.usage && data.usage.output_tokens) || 0,
     });
   } catch (err) {
-    return Response.json({ error: err.message }, { status: 500 });
+    return Response.json({ error: "CRASH", message: err.message }, { status: 500 });
   }
 }
