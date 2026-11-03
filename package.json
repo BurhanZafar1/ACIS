@@ -1,21 +1,23 @@
 {
-  "name": "acis-dashboard",
+  "name": "acis",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test tests/*.test.js"
   },
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "recharts": "^2.12.7",
-    "lucide-react": "^0.383.0"
+    "recharts": "^2.12.7"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
     "vite": "^5.4.2"
-  }
+  },
+  "description": "LLM cost simulator: estimate per-query spend across 10 models and route each prompt to the best quality per dollar.",
+  "license": "MIT"
 }
